@@ -5,7 +5,7 @@
 
 BASENAME=$(basename $1)
 
-function checksum_error()
+checksum_error()
 {
     echo "ERROR: $1 checksum failure on $BASENAME, should be:\n$2\nbut is actually:\n$3" >&2
     exit -1
@@ -23,7 +23,7 @@ elif [ ! -z $(which md5sum) ] || [ ! -z $(which md5) ]; then
 
     if [ ! -z $(which md5sum) ]; then
         CURR_CHECKSUM=$(md5sum $BASENAME | awk '{ print $1; }')
-    else   
+    else
         CURR_CHECKSUM=$(md5 -q $BASENAME)
     fi
     if [ "$TRUE_CHECKSUM" != "$CURR_CHECKSUM" ]; then
