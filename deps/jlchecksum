@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# usage: jlchecksum <filename>
+#
+
+BASENAME=$(basename $1)
+
+function checksum_error()
+{
+    echo "ERROR: $1 checksum failure on $BASENAME, should be:\n$2\nbut is actually:\n$3" >&2
+    exit -1
+}
+
+# If we have md5sum or shasum available, use those to check downloaded file!
+if [ ! -z $(which shasum) ]; then
+    TRUE_CHECKSUM=$(grep $BASENAME deps_checksums.sha512 | awk '{ print $2; }')
+    CURR_CHECKSUM=$(shasum -a 512 $BASENAME | awk '{ print $1; }')
+    if [ "$TRUE_CHECKSUM" != "$CURR_CHECKSUM" ]; then
+        checksum_error "SHA512" "$TRUE_CHECKSUM" "$CURR_CHECKSUM"
+    fi
+elif [ ! -z $(which md5sum) ] || [ ! -z $(which md5) ]; then
+    TRUE_CHECKSUM=$(grep $BASENAME deps_checksums.md5 | awk '{ print $2; }')
+
+    if [ ! -z $(which md5sum) ]; then
+        CURR_CHECKSUM=$(md5sum $BASENAME | awk '{ print $1; }')
+    else   
+        CURR_CHECKSUM=$(md5 -q $BASENAME)
+    fi
+    if [ "$TRUE_CHECKSUM" != "$CURR_CHECKSUM" ]; then
+        checksum_error "MD5" "$TRUE_CHECKSUM" "$CURR_CHECKSUM"
+    fi
+fi
